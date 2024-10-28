@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "firebase": "^11.0.1",
     "grammy": "^1.30.0"
   }
 }
