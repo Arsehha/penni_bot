@@ -3,17 +3,18 @@ const config = {
     firebaseConfig: {
         apiKey: "AIzaSyBZhalv8DUyscWl1dvs5mk6hkfc7MvsmA4",
         authDomain: "pennibot-254f6.firebaseapp.com",
+        databaseURL: "https://pennibot-254f6-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "pennibot-254f6",
         storageBucket: "pennibot-254f6.appspot.com",
         messagingSenderId: "520844607032",
         appId: "1:520844607032:web:d98ed5c589bc33cd8fb0cd",
-        measurementId: "G-633LDVBYC1",
+        measurementId: "G-633LDVBYC1"
     },
     firebaseAuth: {
         mail: "arseniymironov3116@yandex.ru",
         password: "Kroko12345"
     },
-    databaseURL: "https://DATABASE_NAME.firebaseio.com",
+    databaseURL: "https://pennibot-254f6-default-rtdb.europe-west1.firebasedatabase.app/",
 }
 
 module.exports = config
