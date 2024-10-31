@@ -38,17 +38,19 @@ class DatabaseData {
     }
 
     async updateCountUserMessages (userId) {
-        let currentCount = 1;
-        const userRef = ref(database, `users/${userId}`)
-        const snapshot = await get(userRef)
+        if (await this.checkUser(userId)) {
+            let currentCount = 1;
+            const userRef = ref(database, `users/${userId}`)
+            const snapshot = await get(userRef)
 
-        // Получаем текущее количество сообщений
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            currentCount = userData.messagesCount;
-            await update( userRef , {
-                messagesCount: ++currentCount
-            })
+            // Получаем текущее количество сообщений
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                currentCount = userData.messagesCount;
+                await update(userRef, {
+                    messagesCount: ++currentCount
+                })
+            }
         }
     }
 
@@ -63,47 +65,48 @@ class DatabaseData {
     }
 
     async updateGameInfo (userId, choose) {
-        let allGame = 0
-        let winGame = 0
-        const userRef = ref(database, `users/${userId}`)
-        const snapshot = await get(userRef)
+        if (await this.checkUser(userId)) {
+            let allGame = 0
+            let winGame = 0
+            const userRef = ref(database, `users/${userId}`)
+            const snapshot = await get(userRef)
 
-        if(snapshot.exists()) {
-            const userData = snapshot.val();
-            allGame = userData.gameStat.countGame;
-            if( choose === 1 ) {
-                winGame = userData.gameStat.ribs
-                await update( userRef , {
-                    gameStat: {
-                        countGame: ++allGame,
-                        ribs: ++winGame,
-                        eagle: userData.gameStat.eagle,
-                        tails: userData.gameStat.tails,
-                    }
-                })
-            } else if ( choose === 2 ) {
-                winGame = userData.gameStat.eagle
-                await update( userRef , {
-                    gameStat: {
-                        countGame: ++allGame,
-                        ribs: userData.gameStat.ribs,
-                        eagle: ++winGame,
-                        tails: userData.gameStat.tails,
-                    }
-                })
-            } else if ( choose === 3 ) {
-                winGame = userData.gameStat.tails
-                await update( userRef , {
-                    gameStat: {
-                        countGame: ++allGame,
-                        ribs: userData.gameStat.ribs,
-                        eagle: userData.gameStat.eagle,
-                        tails: ++winGame,
-                    }
-                })
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                allGame = userData.gameStat.countGame;
+                if (choose === 1) {
+                    winGame = userData.gameStat.ribs
+                    await update(userRef, {
+                        gameStat: {
+                            countGame: ++allGame,
+                            ribs: ++winGame,
+                            eagle: userData.gameStat.eagle,
+                            tails: userData.gameStat.tails,
+                        }
+                    })
+                } else if (choose === 2) {
+                    winGame = userData.gameStat.eagle
+                    await update(userRef, {
+                        gameStat: {
+                            countGame: ++allGame,
+                            ribs: userData.gameStat.ribs,
+                            eagle: ++winGame,
+                            tails: userData.gameStat.tails,
+                        }
+                    })
+                } else if (choose === 3) {
+                    winGame = userData.gameStat.tails
+                    await update(userRef, {
+                        gameStat: {
+                            countGame: ++allGame,
+                            ribs: userData.gameStat.ribs,
+                            eagle: userData.gameStat.eagle,
+                            tails: ++winGame,
+                        }
+                    })
+                }
             }
         }
-
     }
 
     async getStats (userId) {
@@ -142,7 +145,7 @@ class DatabaseData {
             const userData = snapshot.val();
             return userData.admin === true;
         } else {
-            false
+            return false
         }
     }
 
