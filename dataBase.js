@@ -18,15 +18,15 @@ function connectDb () {
 //Все методы класса
 class DatabaseData {
 
-    async setUser(userId, nameTag, gameCount, eagle, tails, ribs) {
+    async setUser(userId, nameTag,) {
         try {
             await set(ref(database, 'users/' + userId), {
                 nameTag: nameTag,
                 gameStat: {
-                    countGame: gameCount,
-                    eagle: eagle,
-                    tails: tails,
-                    ribs: ribs,
+                    countGame: 0,
+                    eagle: 0,
+                    tails: 0,
+                    ribs: 0,
                 },
                 messagesCount: 1
             }).then(() => {
@@ -39,18 +39,17 @@ class DatabaseData {
 
     async updateCountUserMessages (userId) {
         let currentCount = 1;
-        const userRef = ref(database, `users/${userId}`);
+        const userRef = ref(database, `users/${userId}`)
         const snapshot = await get(userRef)
 
         // Получаем текущее количество сообщений
         if (snapshot.exists()) {
             const userData = snapshot.val();
             currentCount = userData.messagesCount;
+            await update( userRef , {
+                messagesCount: ++currentCount
+            })
         }
-
-        await update( userRef , {
-            messagesCount: ++currentCount
-        })
     }
 
     async checkUser (userId) {
@@ -63,16 +62,135 @@ class DatabaseData {
         }
     }
 
-    async getAllUsers () {
+    async updateGameInfo (userId, choose) {
+        let allGame = 0
+        let winGame = 0
+        const userRef = ref(database, `users/${userId}`)
+        const snapshot = await get(userRef)
 
+        if(snapshot.exists()) {
+            const userData = snapshot.val();
+            allGame = userData.gameStat.countGame;
+            if( choose === 1 ) {
+                winGame = userData.gameStat.ribs
+                await update( userRef , {
+                    gameStat: {
+                        countGame: ++allGame,
+                        ribs: ++winGame,
+                        eagle: userData.gameStat.eagle,
+                        tails: userData.gameStat.tails,
+                    }
+                })
+            } else if ( choose === 2 ) {
+                winGame = userData.gameStat.eagle
+                await update( userRef , {
+                    gameStat: {
+                        countGame: ++allGame,
+                        ribs: userData.gameStat.ribs,
+                        eagle: ++winGame,
+                        tails: userData.gameStat.tails,
+                    }
+                })
+            } else if ( choose === 3 ) {
+                winGame = userData.gameStat.tails
+                await update( userRef , {
+                    gameStat: {
+                        countGame: ++allGame,
+                        ribs: userData.gameStat.ribs,
+                        eagle: userData.gameStat.eagle,
+                        tails: ++winGame,
+                    }
+                })
+            }
+        }
+
+    }
+
+    async getStats (userId) {
+        const userRef = ref(database, `users/${userId}`)
+        const snapshot = await get(userRef)
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val()
+            const countGame = userData.gameStat.countGame;
+            const ribs = userData.gameStat.ribs;
+            const eagle = userData.gameStat.eagle;
+            const tails = userData.gameStat.tails;
+            const countMessages = userData.messagesCount;
+            return {countGame, ribs, eagle, tails, countMessages};
+        }
+
+    }
+
+    async updateAdmin (userId) {
+        const userExists = await this.checkUser(userId)
+        if(userExists === true) {
+            const userRef = ref(database, `users/${userId}`)
+            await update(userRef, { admin: true })
+            return true
+        } else {
+            console.error("Неправильный userId")
+            return false
+        }
+    }
+
+    async getAdmin (userId) {
+        const userRef = ref(database, `users/${userId}`)
+        const snapshot = await get(userRef)
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            return userData.admin === true;
+        } else {
+            false
+        }
+    }
+
+    async getAllUsers () {
+        const snapshot = await get(ref(database, `users`))
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            return Object.keys(userData).length;
+        }
     }
 
     async getAllMessages () {
+        const snapshot = await get(ref(database, `users`))
 
+        if (snapshot.exists()) {
+            const usersData = snapshot.val();
+            let totalMessages = 0;
+
+            for (const userId in usersData) {
+                totalMessages += usersData[userId].messagesCount || 0;
+            }
+
+            return totalMessages
+        }
     }
 
     async getAllGames () {
+        const snapshot = await get(ref(database, `users`))
 
+        if (snapshot.exists()) {
+            const usersData = snapshot.val();
+            let totalGame = 0;
+
+            for (const userId in usersData) {
+                totalGame += usersData[userId].gameStat.countGame || 0;
+            }
+
+            return totalGame
+        }
+    }
+
+    async getAllStats () {
+        const totalUsers = await this.getAllUsers() || "0";
+        const totalMessages = await this.getAllMessages() || "0";
+        const totalGames = await this.getAllGames() || "0";
+
+        return { totalUsers, totalMessages, totalGames };
     }
 
 }
