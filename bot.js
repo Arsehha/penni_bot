@@ -1,13 +1,30 @@
-const { Bot, InputFile, Keyboard, session,} = require("grammy")
+const { Bot, InputFile, session} = require("grammy")
+const { run, } = require("@grammyjs/runner")
+const {createConversation, conversations,  } = require("@grammyjs/conversations");
+const {connectDb, db} = require("./database")
+const { setAdmin } = require("./conversation")
 const message = require("./message")
 const config = require('./config.js')
-const {connectDb, db} = require("./dataBase");
+const board = require("./keyboard.js")
 
 const bot = new Bot(config.bot_token)
 
 connectDb()
 
-bot.use(session({ initial: () => ({ waitingForAdminId: null }) }));
+//Функция для получения ключа диалога
+function getSessionKey(ctx) {
+    return ctx.chat?.id.toString();
+}
+
+//Создание сиссии
+bot.use(session({ getSessionKey, initial() {
+        return {}
+    } }))
+
+//Разрешение боту на использование диалогов
+bot.use(conversations())
+//Создание диалога
+bot.use(createConversation(setAdmin))
 
 //Приветствие пользователей, после ввода команды start
 bot.command(`start`, async (ctx) => {
@@ -18,7 +35,7 @@ bot.command(`start`, async (ctx) => {
     //Проверка пользователя на наличие в БД
     if(await db.checkUser(ctx.from.id) === false) {
         //Добавление пользователя в Firebase
-        console.log("Пользователь не существует");
+        console.log("Пользователь не существует")
 
         db.setUser(ctx.from.id, ctx.from.username,)
             .then(() => {
@@ -31,20 +48,12 @@ bot.command(`start`, async (ctx) => {
         })
 
     if(await db.getAdmin(ctx.from.id) === false) {
-        const userKeyboard = new Keyboard().text("Монетка").text("Результат").resized();
         await ctx.reply("Выберите действие", {
-            reply_markup: userKeyboard,
+            reply_markup: board.userKeyboard,
         });
     } else {
-        const adminKeyboard = new Keyboard()
-            .text("Монетка")
-            .text("Результат")
-            .row()
-            .text("Добавить админа")
-            .text("Статистика")
-            .resized();
         await ctx.reply("Вы можете пользоваться админ панелью", {
-            reply_markup: adminKeyboard,
+            reply_markup: board.adminKeyboard,
         })
     }
 
@@ -53,7 +62,7 @@ bot.command(`start`, async (ctx) => {
 //Реакция на кнопку Монетка
 bot.hears("Монетка", async (ctx) => {
     await db.updateCountUserMessages(ctx.from.id)
-    const randomNumber = Math.floor(Math.random() * 100) + 1;
+    const randomNumber = Math.floor(Math.random() * 100) + 1
     if (randomNumber <= 2) {
         await ctx.reply("Монета упала ребром!")
         await db.updateGameInfo(ctx.from.id, 1)
@@ -87,40 +96,11 @@ bot.hears("Статистика", async (ctx) => {
 })
 
 //Добавление админа
-bot.hears("Добавить админа", async (ctx) => {
-    await db.updateCountUserMessages(ctx.from.id);
-    if (await db.getAdmin(ctx.from.id)) { // Проверяем, является ли пользователь администратором
-        ctx.session.waitingForAdminId = ctx.from.id; // Сохраняем состояние ожидания
-        await ctx.reply("Напишите userId пользователя, которого хотите сделать администратором.");
-    } else {
-        await ctx.reply("У вас нет прав для выполнения этой команды.");
-    }
-});
-
-// Обработка сообщений
-bot.on("message", async (ctx) => {
-    await db.updateCountUserMessages(ctx.from.id);
-
-    if (ctx.session.waitingForAdminId && ctx.from.id === ctx.session.waitingForAdminId) {
-        const userId = parseInt(ctx.message.text); // Получаем userId из текста
-        const result = await db.updateAdmin(userId);
-
-        if (result) {
-            await ctx.reply("Пользователь повышен до админа.");
-        } else {
-            await ctx.reply("Неверный userId.");
-        }
-
-        ctx.session.waitingForAdminId = null; // Сбрасываем состояние ожидания
-    }
-});
+bot.hears("Добавить админа", async (ctx) => ctx.conversation.enter("setAdmin"))
 
 //подсчёт сообщений пользователей
 bot.on("message", async (ctx) => {
     await db.updateCountUserMessages(ctx.from.id)
 })//Конец подсчёта
 
-bot.start()
-    .catch(() =>{
-        console.log("Не запустился бот")
-    })
+run(bot)

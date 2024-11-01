@@ -1,11 +1,11 @@
-const config = require('./config.js');
-const { initializeApp } = require("firebase/app");
+const config = require('./config.js')
+const { initializeApp } = require("firebase/app")
 const { getDatabase, ref, set, update, get, query,} = require("firebase/database");
 const { getAuth, signInWithEmailAndPassword } = require("firebase/auth");
 
-const app = initializeApp(config.firebaseConfig);
-const database = getDatabase(app);
-const auth = getAuth(app);
+const app = initializeApp(config.firebaseConfig)
+const database = getDatabase(app)
+const auth = getAuth(app)
 
 //Функция проверки пользователся в бд
 function connectDb () {
@@ -22,6 +22,7 @@ class DatabaseData {
         try {
             await set(ref(database, 'users/' + userId), {
                 nameTag: nameTag,
+                admin: false,
                 gameStat: {
                     countGame: 0,
                     eagle: 0,
@@ -30,10 +31,10 @@ class DatabaseData {
                 },
                 messagesCount: 1
             }).then(() => {
-                console.log("User data saved successfully");
+                console.log("User data saved successfully")
             })
         } catch (error) {
-            console.error("Error saving user data:", error);
+            console.error("Error saving user data:", error)
         }
     }
 
@@ -142,8 +143,8 @@ class DatabaseData {
         const snapshot = await get(userRef)
 
         if (snapshot.exists()) {
-            const userData = snapshot.val();
-            return userData.admin === true;
+            const userData = snapshot.val()
+            return userData.admin === true
         } else {
             return false
         }
@@ -153,8 +154,8 @@ class DatabaseData {
         const snapshot = await get(ref(database, `users`))
 
         if (snapshot.exists()) {
-            const userData = snapshot.val();
-            return Object.keys(userData).length;
+            const userData = snapshot.val()
+            return Object.keys(userData).length
         }
     }
 
@@ -177,11 +178,11 @@ class DatabaseData {
         const snapshot = await get(ref(database, `users`))
 
         if (snapshot.exists()) {
-            const usersData = snapshot.val();
-            let totalGame = 0;
+            const usersData = snapshot.val()
+            let totalGame = 0
 
             for (const userId in usersData) {
-                totalGame += usersData[userId].gameStat.countGame || 0;
+                totalGame += usersData[userId].gameStat.countGame || 0
             }
 
             return totalGame
@@ -189,11 +190,11 @@ class DatabaseData {
     }
 
     async getAllStats () {
-        const totalUsers = await this.getAllUsers() || "0";
-        const totalMessages = await this.getAllMessages() || "0";
-        const totalGames = await this.getAllGames() || "0";
+        const totalUsers = await this.getAllUsers() || "0"
+        const totalMessages = await this.getAllMessages() || "0"
+        const totalGames = await this.getAllGames() || "0"
 
-        return { totalUsers, totalMessages, totalGames };
+        return { totalUsers, totalMessages, totalGames }
     }
 
 }
