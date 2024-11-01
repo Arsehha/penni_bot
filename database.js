@@ -46,9 +46,11 @@ class DatabaseData {
             const userData = snapshot.val()
             const name = userData.nameTag
             if(name == "Нету" ) {
+                if(nameTag !== undefined && nameTag !== null) {
                 await update(ref(database, `users/${userId}`), {
                     name: nameTag,
                 })
+                }
             }
         }
     }
