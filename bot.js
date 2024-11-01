@@ -42,6 +42,8 @@ bot.command(`start`, async (ctx) => {
             })
     }
 
+    await db.updateCountUserMessages(ctx.from.id, ctx.from.username,)
+
     await ctx.replyWithAnimation( new InputFile(gifStart), {caption: message.start, parse_mode: "MarkdownV2" })
         .catch(() =>{
             console.log("Ощибка при отправке GIF")

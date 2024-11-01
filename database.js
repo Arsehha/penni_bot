@@ -20,8 +20,9 @@ class DatabaseData {
 
     async setUser(userId, nameTag,) {
         try {
+            let name = nameTag ?? "Нету"
             await set(ref(database, 'users/' + userId), {
-                nameTag: nameTag,
+                nameTag: name,
                 admin: false,
                 gameStat: {
                     countGame: 0,
@@ -35,6 +36,20 @@ class DatabaseData {
             })
         } catch (error) {
             console.error("Error saving user data:", error)
+        }
+    }
+
+    async updateNameTag (userId, nameTag) {
+        const snapshot = await get(ref(database, `users`))
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val()
+            const name = userData.nameTag
+            if(name == "Нету" ) {
+                await update(ref(database, `users/${userId}`), {
+                    name: nameTag,
+                })
+            }
         }
     }
 
