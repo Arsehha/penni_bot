@@ -12,6 +12,7 @@
   "dependencies": {
     "@grammyjs/conversations": "^1.2.0",
     "@grammyjs/runner": "^2.0.3",
+    "dotenv": "^16.4.5",
     "firebase": "^11.0.1",
     "grammy": "^1.30.0"
   }
