@@ -98,7 +98,10 @@ bot.hears("Статистика", async (ctx) => {
 })
 
 //Добавление админа
-bot.hears("Добавить админа", async (ctx) => ctx.conversation.enter("setAdmin"))
+bot.hears("Добавить админа", async (ctx) =>
+    if (await db.getAdmin(ctx.from.id) === true) {
+    ctx.conversation.enter("setAdmin")
+})
 
 //подсчёт сообщений пользователей
 bot.on("message", async (ctx) => {
